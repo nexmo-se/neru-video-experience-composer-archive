@@ -17,6 +17,8 @@
 ## Environment variables
 - `OT_API_KEY`, `OT_API_SECRET`:
     Vonage Video Project API KEY and API SECRET.
+- `APP_URL`:
+    Public URL to the APP server
 
 
 ## Available Scripts

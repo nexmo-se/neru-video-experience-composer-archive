@@ -12,7 +12,7 @@ const { neru } = require("neru-alpha");
 const opentok = require("./opentok");
 const state = require("./state")(neru);
 
-const appUrl = neru.getAppUrl();
+const appUrl = process.env.APP_URL; // neru.getAppUrl();
 
 /** */
 const start = async (app) => {

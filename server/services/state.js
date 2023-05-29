@@ -12,7 +12,6 @@ module.exports = () => ({
       rooms.set(id, { 
         id, 
         ...data, 
-        //captionsId: '31e54b01-facc-4f8b-a336-a1fc2b35b723'
       });
     });
   },

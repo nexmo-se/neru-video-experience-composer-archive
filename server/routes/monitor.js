@@ -30,4 +30,4 @@ function Router(services) {
   return router;
 }
 
-module.exports = Router
+module.exports = Router;

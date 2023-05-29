@@ -10,7 +10,8 @@ const PORT = process.env.PORT || 3002;
 /** */
 const opentok = require("./opentok");
 const state = require("./state")();
-const appUrl = process.env.APP_URL; //neru.getAppUrl();
+
+const appUrl = process.env.APP_URL; // neru.getAppUrl();
 
 /** */
 const start = async (app) => {
