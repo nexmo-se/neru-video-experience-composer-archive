@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useRef, useState, useContext, useEffect } from 'react';
 import OT from '@opentok/client';
 
 const defaultPublisherOptions = {
@@ -13,21 +13,19 @@ const defaultPublisherOptions = {
   // fitMode: 'contain',
 };
 
-export function usePublisher({ container, layoutManager }) {
+export function usePublisher() {
+
   const [isPublishing, setIsPublishing] = useState(false);
   const [pubInitialised, setPubInitialised] = useState(false);
 
   const publisherRef = useRef();
 
   const streamCreatedListener = useCallback((event) => {
-    // console.log('[UsePublisher] publisher stream created');
     setIsPublishing(true);
-    layoutManager.layout();
   }, []);
 
   const streamDestroyedListener = useCallback(() => {
     setIsPublishing(false);
-    layoutManager.layout();
   }, []);
 
   const videoElementCreatedListener = useCallback(({ element }) => {
@@ -35,7 +33,6 @@ export function usePublisher({ container, layoutManager }) {
   }, []);
 
   const destroyedListener = useCallback(() => {
-    console.log('[UsePublisher] publisher destroyed');
     publisherRef.current = null;
     setPubInitialised(false);
     setIsPublishing(false);
@@ -128,6 +125,11 @@ export function usePublisher({ container, layoutManager }) {
     }
     publisherRef.current = null;
   };
+
+  // useEffect(() => {
+  //   return () => {
+  //   }
+  // }, []);
 
   return {
     publisher: publisherRef.current,

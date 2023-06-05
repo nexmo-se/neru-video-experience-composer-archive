@@ -2,7 +2,6 @@ import { useContext, useEffect, useRef, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useStyles from './styles';
 import { UserContext } from '../../context/UserContext';
-import { useQuery } from './../../hooks/useQuery';
 import { usePublisher } from '../../hooks/usePublisher';
 import { AudioSettings } from '../AudioSetting';
 import { VideoSettings } from '../VideoSetting';
@@ -17,39 +16,24 @@ import {
   InputLabel,
   MenuItem,
   Select,
-  Box
 } from '@mui/material';
 
-const defaultLocalAudio = true;
-const defaultLocalVideo = true;
-const publisherOptions = {
-  publishAudio: defaultLocalAudio,
-  publishVideo: defaultLocalVideo,
-};
-
-const rooms = ['Room A', 'Room B', 'Room C'];
-
 export function WaitingRoom() {
-  const classes = useStyles();
-  const { user, setUser } = useContext(UserContext);
-  const navigate = useNavigate();
-
-  const query = useQuery();
-  const _roomId = query.get('room') ?? 'room-0';
-
-  const [localAudio, setLocalAudio] = useState(defaultLocalAudio);
-  const [localVideo, setLocalVideo] = useState(defaultLocalVideo);
-  const [roomId, setRoomId] = useState(_roomId);
-
   const waitingRoomVideoContainerRef = useRef();
+
+  const { user, setUser, rooms, room, setRoom } = useContext(UserContext);
+
+  const [localAudio, setLocalAudio] = useState(user.defaultSettings.publishAudio);
+  const [localVideo, setLocalVideo] = useState(user.defaultSettings.publishVideo);
+
+  const classes = useStyles();
+  const navigate = useNavigate();
 
   const {
     publisher,
     initPublisher,
     pubInitialised,
-  } = usePublisher({
-    container: "waiting-room-video-container"
-  });
+  } = usePublisher();
 
   const handleAudioChange = useCallback((e) => {
     setLocalAudio(e.target.checked);
@@ -59,13 +43,20 @@ export function WaitingRoom() {
     setLocalVideo(e.target.checked);
   }, []);
 
+  const handleRoomChange = useCallback((e) => {
+    setRoom({...room, id: e.target.value});
+  }, []);
+
+  const handleUsernameChange = useCallback((e) => {
+    let value = e.target.value || `U${ Date.now() }`;
+    localStorage.setItem('username', value);
+    setUser({ ...user, username: value });
+  }, []);
+
   const handleJoinClick = () => {
-    if (!user.username) {
-      setUser({...user, username: `U${ Date.now() }`});
-    }
     navigate({
       pathname: '/video-room',
-      search: `?room=${roomId}`,
+      search: `?room=${room.id}`,
     });
   };
 
@@ -73,7 +64,7 @@ export function WaitingRoom() {
     if (waitingRoomVideoContainerRef.current && !pubInitialised) {
       initPublisher({
         container: waitingRoomVideoContainerRef.current.id,
-        publisherOptions
+        publisherOptions: user.defaultSettings
       });
     }
   }, [initPublisher, pubInitialised]);
@@ -89,22 +80,13 @@ export function WaitingRoom() {
       publisher.publishVideo(localVideo);
     }
   }, [localVideo, publisher]);
-  
+
   useEffect(() => {
-    localStorage.setItem('username', user.username);
-    setUser({
-      ...user,
-      defaultSettings: {
-        publishAudio: localAudio,
-        publishVideo: localVideo,
-      }
-    });
-  }, [
-    user,
-    setUser,
-    localAudio,
-    localVideo,
-  ]);
+    setUser({ ...user, defaultSettings: {
+      publishAudio: localAudio,
+      publishVideo: localVideo
+    }});
+  }, [localVideo, localAudio]);
 
   return (
     <Grid
@@ -126,7 +108,7 @@ export function WaitingRoom() {
       <div
         id="waiting-room-video-container"
         className={classes.waitingRoomVideoPreview}
-        ref={ waitingRoomVideoContainerRef }
+        ref={waitingRoomVideoContainerRef}
       ></div>
 
       <List
@@ -141,10 +123,8 @@ export function WaitingRoom() {
           <Select
             labelId="room-list-select-label"
             id="room-list-select"
-            value={roomId}
-            onChange={(event) => {
-              setRoomId(event.target.value);
-            }}
+            value={room.id}
+            onChange={handleRoomChange}
             label="*Select Room"
           >
             {rooms.map((room, index) => (
@@ -164,13 +144,9 @@ export function WaitingRoom() {
           id="username"
           label="*Your Name"
           value={user.username}
-          onChange={(event) => {
-            setUser({...user, username: event.target.value});
-          }}
+          onChange={handleUsernameChange}
         />
-
         </FormControl>
-
         </ListItem>
       </List>
 

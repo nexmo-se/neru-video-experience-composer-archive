@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import LayoutManager from "../utils/layout-manager";
 
 const defaultSubscriberOptions = {
   insertMode: 'append',
@@ -12,8 +13,10 @@ const defaultSubscriberOptions = {
   // fitMode: 'contain'
 };
 
-export function useSubscriber({ layoutManager }) {
+export function useSubscriber({ container }) {
+
   const [subscribers, setSubscribers] = useState([]);
+  const [layoutManager, setLayoutManager] = useState(new LayoutManager(container));
 
   const addSubscriber = (subscriber) => {
     if (!subscriber.stream || !subscriber.streamId) return;

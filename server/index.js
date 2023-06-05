@@ -9,10 +9,10 @@ const indexRouter = require('./routes');
 const app = express();
 
 app.use(logger('dev', { skip: (req) => {
-  const p = req.path.split('/');
+  const p = req.originalUrl.split('/');
   return (p && p.length)
-    ? ['/_', '/static', '/favicon.ico', '/manifest.json'].includes(`/${p[1]}`) 
-      || '/api/room/_/token' === `/${p[1]}/${p[2]}/_/${p[4]}/`
+    ? ['_', 'static', 'favicon.ico', 'manifest.json', 'images'].includes(`${p[1]}`) 
+      || '/room/token' === `/${p[2]}/${p[4]}`
     : false;
 }}));
 app.use(cors());

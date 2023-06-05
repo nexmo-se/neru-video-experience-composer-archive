@@ -1,11 +1,12 @@
-import { useState, useRef, useCallback, useEffect } from 'react';
+import { useState, useRef, useCallback, useEffect, useContext } from 'react';
 import OT from '@opentok/client';
-
+import { MessageContext } from '../context/MessageContext';
 import { useSubscriber } from './useSubscriber';
 
-export function useSession({ container, layoutManager }) {
-  
+export function useSession({ container }) {
   const sessionRef = useRef(null);
+
+  const { msgListener } = useContext(MessageContext);
 
   const [connected, setConnected] = useState(false);
   const [streams, setStreams] = useState([]);
@@ -14,7 +15,7 @@ export function useSession({ container, layoutManager }) {
   const {
     subscribe,
     unsubscribe,
-  } = useSubscriber({ layoutManager });
+  } = useSubscriber({ container });
 
   const addStream = (stream) => {
     setStreams((prev) => [...prev, stream]);
@@ -35,6 +36,9 @@ export function useSession({ container, layoutManager }) {
         break;
       case 'signal:recorder:stopped':
         setIsRecording(false);
+        break;
+      case 'signal:message':
+        msgListener(data);
         break;
     }
   };

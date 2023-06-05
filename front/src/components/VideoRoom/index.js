@@ -5,46 +5,35 @@ import React, {
   useState,
   useCallback
 } from 'react';
-import { useNavigate } from 'react-router-dom';
-import {
-  Stack,
-} from '@mui/material';
 import useStyles from './styles';
 import LayoutManager from "../../utils/layout-manager";
 import { getCredentials } from '../../api/credentials';
 import { UserContext } from '../../context/UserContext';
-import { useQuery } from './../../hooks/useQuery';
 import { usePublisher } from '../../hooks/usePublisher';
 import { useSession } from '../../hooks/useSession';
 import { ControlToolBar } from '../ControlToolBar';
+import { ChatList } from '../ChatList';
+import { ChatInput } from '../ChatInput';
 
 export function VideoRoom() {
-  const classes = useStyles();
+  const videoContainerRef = useRef();
+  const resizeTimeoutRef = useRef();
 
-  const { user, setUser } = useContext(UserContext);
-  
-  const navigate = useNavigate();
-
-  const query = useQuery();
-
-  const [roomId, setRoomId] = useState(null);
+  const { user, canUserPublish, room } = useContext(UserContext);
 
   const [credentials, setCredentials] = useState(null);
-  const [userRole, setUserRole] = useState(null);
   const [hasAudio, setHasAudio] = useState(user.defaultSettings.publishAudio);
   const [hasVideo, setHasVideo] = useState(user.defaultSettings.publishVideo);
+  const [showChat, setShowChat] = useState(true);
   const [layoutManager, setLayoutManager] = useState(new LayoutManager("video-container"));
-
-  const videoContainerRef = useRef();
+  
+  const classes = useStyles();
 
   const { 
     publisher,
     publish,
     isPublishing,
-  } = usePublisher({
-    container: "video-container",
-    layoutManager
-  });
+  } = usePublisher();
 
   const { 
     session,
@@ -53,8 +42,7 @@ export function VideoRoom() {
     isRecording,
     setIsRecording,
    } = useSession({
-    container: "video-container",
-    layoutManager
+    container: "video-container"
   });
 
   const toggleAudio = useCallback(() => {
@@ -65,22 +53,16 @@ export function VideoRoom() {
     setHasVideo((prevVideo) => !prevVideo);
   }, []);
 
-  useEffect(() => {
-    const _roomId = query.get('room') ?? 'room-0';
-    const _userRole = query.get('ec') ? 'subscriber' : 'publisher'; //TODO: host, guest, ec
+  const toggleShowChat = useCallback(() => {
+    setShowChat((prev) => !prev);
+    setTimeout(function () {
+      layoutManager.layout();
+    }, 100);
+  }, []);
 
-    let _username = localStorage.getItem('username');
-    if (!_username && _userRole === 'publisher') {
-      navigate({
-        pathname: '/waiting-room',
-        search: `?room=${_roomId}`,
-      });
-    }
-    
-    getCredentials(_roomId).then((data) => {
+  useEffect(() => {
+    getCredentials(room.id).then((data) => {
       setCredentials(data);
-      setUserRole(_userRole);
-      setRoomId(_roomId);
       if (data.isRecording) setIsRecording(true);
     });
   }, []);
@@ -92,7 +74,7 @@ export function VideoRoom() {
   }, [createSession, credentials]);
 
   useEffect(() => {
-    if ('publisher' === userRole && session && connected && !isPublishing) {
+    if (session && connected && !isPublishing && canUserPublish) {
       let publisherOptions = {
         publishAudio: hasAudio,
         publishVideo: hasVideo,
@@ -104,57 +86,63 @@ export function VideoRoom() {
         publisherOptions
       });
     }
-  }, [publish, session, connected, isPublishing, userRole]);
+    if (session && connected && canUserPublish) {
+      layoutManager.layout();
+    }
+  }, [publish, session, connected, isPublishing, canUserPublish]);
 
   useEffect(() => {
-    if ('publisher' === userRole && publisher) {
+    if (publisher && canUserPublish) {
       publisher.publishAudio(hasAudio);
     }
-  }, [hasAudio, publisher, userRole]);
+  }, [hasAudio, publisher, canUserPublish]);
 
   useEffect(() => {
-    if ('publisher' === userRole && publisher) {
+    if (publisher && canUserPublish) {
       publisher.publishVideo(hasVideo);
     }
-  }, [hasVideo, publisher, userRole]);
+  }, [hasVideo, publisher, canUserPublish]);
 
   useEffect(() => {
-    var resizeTimeout;
     window.onresize = function() {
-      clearTimeout(resizeTimeout);
-      resizeTimeout = setTimeout(function () {
-        if (layoutManager) layoutManager.layout();
-      }, 20);
+      clearTimeout(resizeTimeoutRef.current);
+      resizeTimeoutRef.current = setTimeout(function () {
+        layoutManager.layout();
+      }, 100);
     };
+    return (() => {
+      clearTimeout(resizeTimeoutRef.current);
+    })
   }, []);
 
   return (
-  <Stack
-    direction="column"
-    justifyContent="center"
-    alignItems="center"
-    spacing={1}
-  >
-    <div
-      id="video-container"
-      className={ classes.videoContainer }
-      ref={ videoContainerRef }
-    >
+  <div className={classes.container}>
+    <div id="video-container"
+      className={`${classes.videoContainer} ${!showChat? classes.fullWidth : ""}`}
+      ref={videoContainerRef}
+    ></div>
+
+    <div id="chat-container"
+      className={`${classes.chatContainer} ${!showChat? "" : classes.visible}`}
+      >
+      <ChatList toggleShowChat={toggleShowChat}></ChatList>
+      { connected? <ChatInput session={session}></ChatInput> : ''}
     </div>
     
-    {'publisher' === userRole && connected ? 
+    {publisher && canUserPublish && connected ? 
     <ControlToolBar
-      className={classes.controlToolbar}
+      className={`${classes.controlToolbar} ${!showChat? "" : classes.left40}`}
       hasAudio={hasAudio}
       hasVideo={hasVideo}
       handleMicButtonClick={toggleAudio}
       handleVideoButtonClick={toggleVideo}
-      roomId={roomId} 
+      roomId={room.id} 
       sessionId={credentials.sessionId}
       recorderSessionId={credentials.recorderSessionId}
       isRecording={isRecording} 
       setIsRecording={setIsRecording}
+      showChat={showChat}
+      toggleShowChat={toggleShowChat}
     /> : ''}
-
-  </Stack>);
+  </div>);
 }
