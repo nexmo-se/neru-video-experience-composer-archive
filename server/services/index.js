@@ -20,21 +20,20 @@ const start = async (app) => {
 
     app.set('appUrl', appUrl);
 
-    const session = process.env.SESSION_ID
-      ? { 
+    // // todo: remove, only for testing
+    if (process.env.SESSION_ID && process.env.RECORDING_SESSION_ID) {
+      const session = { 
         sessionId: process.env.SESSION_ID, 
-        recorderSessionId: process.env.RECORDING_SESSION_ID, //todo for testing
-      } : await opentok.createSession();
-
+        recorderSessionId: process.env.RECORDING_SESSION_ID,
+      };
       console.log('[start] - session', session);
-    
-    await state.initRooms([session, {
-      sessionId: process.env.RECORDING_SESSION_ID, //todo for testing
-    }]);
+      await state.initRooms([session]);
+    }
 
     app.listen(PORT, function () {
       console.log(`[start] - listening on ${PORT} `);
     });
+
   } catch (e) {
     console.log('[start] - error', e);
     process.exit(1);

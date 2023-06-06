@@ -2,6 +2,7 @@ import { useContext, useEffect, useRef, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import useStyles from './styles';
 import { UserContext } from '../../context/UserContext';
+import { RoomContext } from '../../context/RoomContext';
 import { usePublisher } from '../../hooks/usePublisher';
 import { AudioSettings } from '../AudioSetting';
 import { VideoSettings } from '../VideoSetting';
@@ -21,7 +22,8 @@ import {
 export function WaitingRoom() {
   const waitingRoomVideoContainerRef = useRef();
 
-  const { user, setUser, rooms, room, setRoom } = useContext(UserContext);
+  const { user, setUser } = useContext(UserContext);
+  const { rooms, room, setRoom } = useContext(RoomContext);
 
   const [localAudio, setLocalAudio] = useState(user.defaultSettings.publishAudio);
   const [localVideo, setLocalVideo] = useState(user.defaultSettings.publishVideo);

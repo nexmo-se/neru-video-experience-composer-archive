@@ -53,7 +53,16 @@ const sendSignal = async function (sessionId, type) {
     throw `send Signal - ${ err.message || 'failed'}`;
   }
 }
-  
+
+const listArchives =  async function (params) {
+  return new Promise((resolve, reject) => {
+    opentok.listArchives(params, function (err, archives, count) {
+      if (err) return reject(err);
+      resolve({ archives, count });
+    });
+  });
+}
+
 const listRenders = async function(params) {
   try {
     const url = `https://api.opentok.com/v2/project/${process.env.OT_API_KEY}/render`;
@@ -163,11 +172,12 @@ module.exports = {
   generateToken,
   generateJwt,
   createSession,
+  sendSignal,
+  listArchives,
   listRenders,
   getRender,
   startRender,
   stopRender,
-  sendSignal,
   startRecorder,
   stopRecorder,
 };

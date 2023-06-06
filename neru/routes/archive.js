@@ -5,21 +5,26 @@ const router = express.Router();
 function Router(services) {
   const { opentok } = services;
 
-  router.get('/history', function (req, res, next) {
+  router.get('/history(/:sessionId)?', async function (req, res, next) {
+    var { sessionId } = req.params;
     var page = req.query.page || 1;
-    var offset = (page - 1) * 5;
+    var pageSize = 20;
+    var data = [];
     try {
-      opentok.listArchives({ offset: offset, count: 5 }, function (err, archives, count) {
-        if (err) {
-          let errMsg = `[${req.path}] listArchives ${err.message}`;
-          return res.status(500).send(errMsg);
-        }
-        return res.json({
-          items: archives,
-          showPrevious: page > 1 ? ('/history?page=' + (page - 1)) : null,
-          showNext: (count > offset + 5) ? ('/history?page=' + (page + 1)) : null
-        });
-      });
+      var totalCount = 0;
+      var offset = 0;
+      do {
+        offset = (page - 1) * pageSize;
+        let { archives: items, count } = await opentok.listArchives({ offset, count: pageSize });
+        if (count < 1) break;
+        totalCount = count;
+        if (items && sessionId) items = items.filter(i => (i.sessionId === sessionId));
+        if (items && items.length) data = data.concat(items);
+        page ++;
+        // } while (totalCount >= offset + pageSize);
+      } while (false);
+      
+      return res.json(data);
     } catch(e) {
       next(e);
     }

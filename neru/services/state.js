@@ -12,6 +12,11 @@ module.exports = (neru) => ({
     return neruState;
   },
 
+  async delRooms () {
+    const state = this.neruState;
+    await state.delete(STATE_HASH_TABLE_ROOMS);
+  },
+
   async initRooms (arr) {
     const state = this.neruState;
     arr.filter(async (room, index) => {

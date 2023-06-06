@@ -54,7 +54,7 @@ function Router(services) {
       let resolution = req.body.resolution ?? '1280x720';
       let maxDuration = req.body.maxDuration ?? '1800'; // TODO: set a timer to stop recording
       // start EC render
-      let url = `${appUrl}/video-room?room=${roomId}&ec=1`;
+      let url = `${appUrl}/video-room?room=${roomId}&ec=1&_v=${Date.now()}`;
       let renderOptions = {
         url,
         maxDuration: maxDuration,

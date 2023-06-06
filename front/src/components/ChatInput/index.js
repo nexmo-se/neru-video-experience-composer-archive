@@ -4,12 +4,14 @@ import { TextField, Button } from "@mui/material";
 import SendIcon from '@mui/icons-material/Send';
 
 import { UserContext } from '../../context/UserContext';
+// import { RoomContext } from '../../context/RoomContext';
 import { MessageContext } from '../../context/MessageContext';
 
 import useStyles from "./styles";
 
 export const ChatInput = ({ session }) => {
   const { user } = useContext(UserContext);
+  // const { room } = useContext(RoomContext);
   const { sendMsg } = useContext(MessageContext);
   
   const [text, setText] = useState('');

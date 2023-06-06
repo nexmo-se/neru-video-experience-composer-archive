@@ -6,6 +6,9 @@ const rooms = new Map();
  * 
  */
 module.exports = () => ({
+  async delRooms () {
+    return;
+  },
   async initRooms (arr) {
     arr.forEach((data, index) => {
       let id = `room-${index}`;

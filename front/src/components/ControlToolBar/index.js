@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { MicButton } from "../MicButton";
 import { VideoButton } from "../VideoButton";
 import { RenderButton } from "../RenderButton";
-import { ArchiveButton } from "../ArchiveButton";
+import { RecorderButton } from "../RecorderButton";
 
 import { IconButton } from "@mui/material";
 import ChatOutlinedIcon from '@mui/icons-material/ChatOutlined';
@@ -17,14 +17,8 @@ export const ControlToolBar = ({
   hasVideo,
   handleMicButtonClick,
   handleVideoButtonClick,
-  roomId,
-  sessionId,
-  recorderSessionId,
-  isRecording,
-  setIsRecording,
   showChat,
   toggleShowChat,
-  // currentPublisher,
 }) => {
   // This bar should include mic, camera, chat, screenshare, settings, endCall
   const [visible, setVisible] = useState(true);
@@ -64,17 +58,15 @@ export const ControlToolBar = ({
           hasAudio={hasAudio}
           onClick={handleMicButtonClick}
         ></MicButton>
+
         <VideoButton
           hasVideo={hasVideo}
           onClick={handleVideoButtonClick}
         ></VideoButton>
-        <RenderButton sessionId={sessionId}/>
-        <ArchiveButton
-          roomId={roomId} 
-          sessionId={recorderSessionId} 
-          isRecording={isRecording} 
-          setIsRecording={setIsRecording}
-        />
+
+        <RenderButton />
+        
+        <RecorderButton />
         
         <IconButton edge="start" 
           color={showChat? "success":"inherit"} 

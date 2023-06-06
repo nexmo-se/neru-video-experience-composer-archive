@@ -1,13 +1,16 @@
-import React, { useState } from "react";
+import { useState, useContext } from "react";
 
 import { IconButton, Tooltip } from "@mui/material";
 import RadioButtonCheckedIcon from '@mui/icons-material/RadioButtonChecked';
 import PlaylistPlayIcon from '@mui/icons-material/PlaylistPlay';
 
 import { startRecorder, stopRecorder } from '../../api/room';
-import { ArchiveListModal } from "../ArchiveModal";
+import { RoomContext } from '../../context/RoomContext';
+import { RecorderListModal } from "../RecorderModal";
 
-export function ArchiveButton({ roomId, sessionId, isRecording, setIsRecording }) {
+export function RecorderButton() {
+  const { room, isRecording, setIsRecording } = useContext(RoomContext);
+
   const [openList, setOpenList] = useState(false);
 
   function toggleOpenList() {
@@ -19,9 +22,9 @@ export function ArchiveButton({ roomId, sessionId, isRecording, setIsRecording }
       return;
     }
     if (!isRecording) {
-      startRecorder(roomId).then(console.log).catch(console.error);
+      startRecorder(room.id).then(console.log).catch(console.error);
     } else {
-      stopRecorder(roomId).then(console.log).catch(console.error);
+      stopRecorder(room.id).then(console.log).catch(console.error);
     }
     setIsRecording((prev) => !prev);
   }
@@ -47,10 +50,10 @@ export function ArchiveButton({ roomId, sessionId, isRecording, setIsRecording }
         <Tooltip title="Recording List" arrow>
         <PlaylistPlayIcon /></Tooltip>
       </IconButton>
-      <ArchiveListModal 
-        sessionId={sessionId}
-        handleClickClose={toggleOpenList}
+      
+      <RecorderListModal 
         open={openList}
+        handleClickClose={toggleOpenList}
       />
     </>
   );

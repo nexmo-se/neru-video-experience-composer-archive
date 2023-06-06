@@ -6,7 +6,8 @@ import ListIcon from '@mui/icons-material/List';
 
 import { RenderCreate, RenderList } from "../RenderModal";
 
-export function RenderButton({ sessionId }) {
+export function RenderButton() {
+
   const [ openCreate, setOpenCreate ] = useState(false);
   const [ openList, setOpenList ] = useState(false);
 
@@ -30,9 +31,8 @@ export function RenderButton({ sessionId }) {
           <DynamicFeedIcon /></Tooltip>
       </IconButton>
       <RenderCreate 
-        sessionId={sessionId}
-        handleClickClose={toggleOpenCreate}
         open={openCreate}
+        handleClickClose={toggleOpenCreate}
       />
 
       <IconButton
@@ -45,9 +45,8 @@ export function RenderButton({ sessionId }) {
         <ListIcon /></Tooltip>
       </IconButton>
       <RenderList 
-        sessionId={sessionId}
-        handleClickClose={toggleOpenList}
         open={openList}
+        handleClickClose={toggleOpenList}
       />
     </>
   );

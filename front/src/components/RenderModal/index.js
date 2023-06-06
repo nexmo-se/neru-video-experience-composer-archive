@@ -1,4 +1,6 @@
-import React, { useState, useCallback, useEffect, useMemo } from "react";
+import { useContext, useState, useCallback, useEffect
+  // , useMemo 
+} from "react";
 import {
   Box,
   Dialog,
@@ -25,12 +27,14 @@ import TableContainer from '@mui/material/TableContainer';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
 
+import { RoomContext } from '../../context/RoomContext';
 import { startRender, stopRender, listRender } from '../../api/render';
 
 /** */
 const resolutions = ["640x480", "480x640", "1280x720", "720x1280", "1920x1080", "1080x1920"];
 
-export function RenderCreate({ sessionId, open, handleClickClose }) {
+export function RenderCreate({ open, handleClickClose }) {
+  const { room } = useContext(RoomContext);
 
   const [url, setUrl] = useState("https://www.google.com.hk/");
   const [urlErrorText, setUrlErrorText] = useState("");
@@ -48,7 +52,7 @@ export function RenderCreate({ sessionId, open, handleClickClose }) {
     const formData = new FormData(e.currentTarget);
     const formDataObj = Object.fromEntries(formData.entries());
     // console.log(formDataObj);
-    startRender(sessionId, formDataObj)
+    startRender(room.sessionId, formDataObj)
       .then(console.log).catch(console.error).finally(handleClickClose());
   };
   
@@ -137,8 +141,9 @@ export function RenderCreate({ sessionId, open, handleClickClose }) {
 /** */
 /** */
 /** */
-export function RenderList({ sessionId, open, handleClickClose }) {
-  const [refresh, setRefresh] = useState(Date.now());
+export function RenderList({ open, handleClickClose }) {
+  const { room, refresh, setRefresh } = useContext(RoomContext);
+
   const [rows, setRows] = useState([]);
   
   const handleStopRow = useCallback(
@@ -146,16 +151,18 @@ export function RenderList({ sessionId, open, handleClickClose }) {
       if (!window.confirm(`Are you sure you want to stop ${row.id}`)) {
         return;
       }
-      stopRender(row.id).then(console.log).catch(console.log);
-      setTimeout(() => { setRefresh(Date.now()); }, 2000);
+      stopRender(row.id)
+        .then(console.log)
+        .catch(console.log)
+        .finally(setTimeout(() => { setRefresh(Date.now()); }, 500));
     }
-    , [rows] );
+    , [ rows ]);
 
   useEffect(
     () => {
-      listRender().then(({ items }) => {
+      listRender(room.sessionId).then(( items ) => {
         if (items) {
-          setRows(items.filter(i => (i.sessionId === sessionId && i.status === 'started')));
+          setRows(items.filter(i => (i.status === 'started')));
         } else {
           setRows([]);
         }

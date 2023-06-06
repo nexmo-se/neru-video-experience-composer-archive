@@ -2,20 +2,8 @@
 import { createContext, useState, useMemo, useEffect } from "react";
 import { useQuery } from '../hooks/useQuery';
 
-/**
- * 
- */
-const ROOM_LIST = ['Room A', 'Room B', 'Room C'];
-const ROOM_DFT = 'room-0';
-
-/**
- * 
- */
 export const UserContext = createContext();
 export function UserProvider({ children }) {
-  
-  const [rooms, setRooms] = useState(ROOM_LIST);
-  const [room, setRoom] = useState({ id: ROOM_DFT });
 
   const [canUserPublish, setCanUserPublish] = useState(true);
   const [user, setUser] = useState({
@@ -29,16 +17,7 @@ export function UserProvider({ children }) {
 
   const query = useQuery();
 
-  // const canUserPublish = () => {
-  //   return user.userRole !== 'viewer';
-  // };
-
   useEffect(() => {
-    setRoom({
-      ...room,
-      id: query.get('room') || ROOM_DFT
-    });
-
     let userRole = query.get('ec') ? 'viewer' : user.userRole;
     setUser({ ...user, userRole });
     setCanUserPublish(userRole !== 'viewer');
@@ -46,17 +25,11 @@ export function UserProvider({ children }) {
 
   const value = useMemo(() => (
     {
-      rooms,
-      room,
-      setRoom,
       user,
       setUser,
       canUserPublish,
     }
   ), [
-    rooms,
-    room,
-    setRoom,
     user,
     setUser,
     canUserPublish,

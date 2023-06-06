@@ -28,9 +28,9 @@ export const stopRender = async (renderId) => {
   return json;
 };
 
-export const listRender = async () => {
+export const listRender = async (sessionId) => {
   const fetchURL = new URL(
-    `/api/ec/history`,
+    `/api/ec/history/${sessionId}`,
     process.env.NODE_ENV === 'production'
       ? process.env.REACT_APP_URL
       : 'http://localhost:3002',

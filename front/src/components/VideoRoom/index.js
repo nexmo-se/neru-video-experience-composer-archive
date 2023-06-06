@@ -9,6 +9,7 @@ import useStyles from './styles';
 import LayoutManager from "../../utils/layout-manager";
 import { getCredentials } from '../../api/credentials';
 import { UserContext } from '../../context/UserContext';
+import { RoomContext } from '../../context/RoomContext';
 import { usePublisher } from '../../hooks/usePublisher';
 import { useSession } from '../../hooks/useSession';
 import { ControlToolBar } from '../ControlToolBar';
@@ -19,7 +20,8 @@ export function VideoRoom() {
   const videoContainerRef = useRef();
   const resizeTimeoutRef = useRef();
 
-  const { user, canUserPublish, room } = useContext(UserContext);
+  const { user, canUserPublish } = useContext(UserContext);
+  const { room, setRoom, setIsRecording } = useContext(RoomContext);
 
   const [credentials, setCredentials] = useState(null);
   const [hasAudio, setHasAudio] = useState(user.defaultSettings.publishAudio);
@@ -39,8 +41,6 @@ export function VideoRoom() {
     session,
     createSession, 
     connected,
-    isRecording,
-    setIsRecording,
    } = useSession({
     container: "video-container"
   });
@@ -61,9 +61,13 @@ export function VideoRoom() {
   }, []);
 
   useEffect(() => {
-    getCredentials(room.id).then((data) => {
-      setCredentials(data);
-      if (data.isRecording) setIsRecording(true);
+    getCredentials(room.id).then(({
+      apiKey, sessionId, token, isRecording, recorderSessionId
+    }) => {
+      console.log({ ...room, sessionId, recorderSessionId })
+      setCredentials({ apiKey, sessionId, token });
+      setRoom({ ...room, sessionId, recorderSessionId })
+      setIsRecording(isRecording);
     });
   }, []);
 
@@ -136,11 +140,6 @@ export function VideoRoom() {
       hasVideo={hasVideo}
       handleMicButtonClick={toggleAudio}
       handleVideoButtonClick={toggleVideo}
-      roomId={room.id} 
-      sessionId={credentials.sessionId}
-      recorderSessionId={credentials.recorderSessionId}
-      isRecording={isRecording} 
-      setIsRecording={setIsRecording}
       showChat={showChat}
       toggleShowChat={toggleShowChat}
     /> : ''}

@@ -1,16 +1,17 @@
 import { useState, useRef, useCallback, useEffect, useContext } from 'react';
 import OT from '@opentok/client';
+import { RoomContext } from '../context/RoomContext';
 import { MessageContext } from '../context/MessageContext';
 import { useSubscriber } from './useSubscriber';
 
 export function useSession({ container }) {
   const sessionRef = useRef(null);
 
+  const { signalListener } = useContext(RoomContext);
   const { msgListener } = useContext(MessageContext);
 
   const [connected, setConnected] = useState(false);
   const [streams, setStreams] = useState([]);
-  const [isRecording, setIsRecording] = useState(false);
 
   const {
     subscribe,
@@ -31,15 +32,11 @@ export function useSession({ container }) {
     let { type, data, from } = event;
     console.log('onSignal', { type, data, from });
     switch (type) {
-      case 'signal:recorder:started':
-        setIsRecording(true);
-        break;
-      case 'signal:recorder:stopped':
-        setIsRecording(false);
-        break;
       case 'signal:message':
         msgListener(data);
         break;
+      default:
+        signalListener(type, data, from);
     }
   };
 
@@ -125,7 +122,5 @@ export function useSession({ container }) {
     createSession,
     disconnectSession,
     streams,
-    isRecording,
-    setIsRecording,
   };
 }
