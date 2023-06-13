@@ -1,7 +1,6 @@
 import { useState, useContext } from 'react';
 
 import { TextField, Button } from "@mui/material";
-import SendIcon from '@mui/icons-material/Send';
 
 import { UserContext } from '../../context/UserContext';
 // import { RoomContext } from '../../context/RoomContext';
@@ -29,13 +28,13 @@ export const ChatInput = ({ session }) => {
     setText(e.target.value);
   };
 
-  return (<div className={classes.chatInput}
-    >
+  return (<div className={classes.chatInput} >
     <TextField
       size="small"
-      sx={{width: "96%"}}
       multiline
+      rows={3}
       maxRows={3}
+      fullWidth
       onChange={changeText}
       onKeyDown={onKeyDown}
       id="standard-text"
@@ -43,7 +42,7 @@ export const ChatInput = ({ session }) => {
       value={text}
     />
     <Button
-      sx={{width: "96%", mt: 1}}
+      sx={{mt: 0.5}}
       variant="contained"
       color="primary"
       aria-label="Send" 

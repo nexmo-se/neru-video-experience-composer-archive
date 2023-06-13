@@ -5,7 +5,7 @@ function Router(services) {
   // const { opentok, state } = services;
   // router.all('/archive', async function (req, res, next) {
   //   try {
-  //     console.log(JSON.stringify(req.body, null, 2));
+  //     console.log(JSON.stringify(req.body));
   //     const sessionId = req.body.sessionId ?? null;
   //     const status = req.body.status ?? null;
   //     if (!sessionId || !status) return res.sendStatus(200);
@@ -20,7 +20,8 @@ function Router(services) {
 
   router.all('/*', async function (req, res, next) {
     try {
-      console.log(JSON.stringify(req.body, null, 2));
+      // console.log(JSON.stringify(req.body, null, 2));
+      console.log(JSON.stringify(req.body));
       res.sendStatus(200);
     } catch (e) {
       next(e)

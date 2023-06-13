@@ -154,7 +154,7 @@ export function RenderList({ open, handleClickClose }) {
       stopRender(row.id)
         .then(console.log)
         .catch(console.log)
-        .finally(setTimeout(() => { setRefresh(Date.now()); }, 500));
+        .finally(setTimeout(() => { setRefresh(Date.now()); }, 2000));
     }
     , [ rows ]);
 

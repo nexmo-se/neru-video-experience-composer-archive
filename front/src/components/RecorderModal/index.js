@@ -37,7 +37,7 @@ export function RecorderListModal({ open, handleClickClose }) {
       stopRecorder(room.id)
         .then(console.log)
         .catch(console.error)
-        .finally(setTimeout(() => { setRefresh(Date.now()); }, 500));
+        .finally(setTimeout(() => { setRefresh(Date.now()); }, 1000));
       ;
     }
     , [ rows ]);

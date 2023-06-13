@@ -10,7 +10,7 @@ export default function useStyles() {
     toolbarBackground: {
       backgroundColor: grey[600],
       padding: "5px 20px",
-      borderRadius: 5,
+      borderRadius: "5px",
       transition: "all 0.8s ease-in",
     },
   });

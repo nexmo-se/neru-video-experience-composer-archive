@@ -8,7 +8,7 @@ const indexRouter = require('./routes');
 
 const app = express();
 
-app.use(logger('dev', { skip: (req) => {
+app.use(logger('tiny', { skip: (req) => {
   const p = req.originalUrl.split('/');
   return (p && p.length)
     ? ['_', 'static', 'favicon.ico', 'manifest.json', 'images'].includes(`${p[1]}`) 

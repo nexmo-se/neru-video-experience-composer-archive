@@ -8,7 +8,7 @@ export default function useStyles() {
       flexDirection: "row",
     },
     videoContainer: {
-      width: "calc(100vw - 22vw)",
+      width: "calc(100vw - 23vw)",
       height: "100vh",
     },
     fullWidth: {
@@ -16,17 +16,18 @@ export default function useStyles() {
     },
     chatContainer: {
       position: "absolute",
-      right: "1vw",
-      top: "2vh",
+      right: "3px",
+      top: "3vh",
       bottom: "2vh",
-      width: "20vw",
-      maxWidth: "50%",
-      height: "96vh",
+      width: "22vw",
+      // maxWidth: "22vw",
+      height: "92vh",
       backgroundColor: "#e7e7e7",
       zIndex: "1000",
       display: "none",
       textAlign: "left",
-      padding: "5px"
+      borderRadius: "10px",
+      overflowX: "hidden"
     },
     visible: {
       display: "block",

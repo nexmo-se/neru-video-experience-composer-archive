@@ -20,6 +20,9 @@ const start = async (app) => {
     console.log('[start] -');
 
     app.set('appUrl', appUrl);
+    
+    // // only for resetting
+    // await state.delRooms();
 
     // // todo: remove, only for testing
     // if (process.env.SESSION_ID && process.env.RECORDING_SESSION_ID) {
