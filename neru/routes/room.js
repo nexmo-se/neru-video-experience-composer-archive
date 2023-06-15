@@ -24,7 +24,7 @@ function Router(services) {
       if (!room) {
         const session = await opentok.createSession();
         console.log(`[router] - ${req.path} opentok.createSession`, session.sessionId);
-        room = await state.addRoom(roomId, session);
+        room = await state.addRoom(roomId, { sessionId: session.sessionId });
       }
       let token = opentok.generateToken(room.sessionId, { role: 'moderator' });
       res.json({

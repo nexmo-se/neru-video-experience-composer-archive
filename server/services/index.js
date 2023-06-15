@@ -20,16 +20,6 @@ const start = async (app) => {
 
     app.set('appUrl', appUrl);
 
-    // // todo: remove, only for testing
-    if (process.env.SESSION_ID && process.env.RECORDING_SESSION_ID) {
-      const session = { 
-        sessionId: process.env.SESSION_ID, 
-        recorderSessionId: process.env.RECORDING_SESSION_ID,
-      };
-      console.log('[start] - session', session);
-      await state.initRooms([session]);
-    }
-
     app.listen(PORT, function () {
       console.log(`[start] - listening on ${PORT} `);
     });

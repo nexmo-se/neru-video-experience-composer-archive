@@ -8,16 +8,16 @@ import { startRecorder, stopRecorder } from '../../api/room';
 import { RoomContext } from '../../context/RoomContext';
 import { RecorderListModal } from "../RecorderModal";
 
-export function RecorderButton() {
+export function RecorderButton({ openTooltip, toggleTooltip }) {
   const { room, isRecording, setIsRecording } = useContext(RoomContext);
 
   const [openList, setOpenList] = useState(false);
 
-  function toggleOpenList() {
+  const toggleOpenList = () => {
     setOpenList((prev) => !prev);
   }
 
-  function toggleIsRecording() {
+  const toggleIsRecording = () => {
     if (!window.confirm(`Are you sure you want to ${!isRecording? "record": "stop recording"}?`)) {
       return;
     }
@@ -31,25 +31,33 @@ export function RecorderButton() {
 
   return (
     <>
+      <Tooltip title={`2. Click to ${isRecording?"Stop":"Start"} Recording`} arrow 
+        placement="top-start"
+        open={openTooltip["RecorderButton"]}
+        disableFocusListener
+        disableHoverListener
+        disableTouchListener
+      >
       <IconButton 
         edge="start" 
         color={isRecording? "error" : "inherit"} 
         aria-label="Record"
         onClick={toggleIsRecording}
-      >
-        <Tooltip title="Start Recording" arrow>
-        <RadioButtonCheckedIcon/></Tooltip>
-      </IconButton>
+      > <RadioButtonCheckedIcon/> </IconButton>
+      </Tooltip>
 
+      <Tooltip title="Recording List" arrow 
+        placement="top-start" 
+        onClose={toggleTooltip("RecorderList", false)}
+        onOpen={toggleTooltip("RecorderList", true)} 
+        >
       <IconButton
         edge="start"
         color="inherit"
         aria-label="List all Recording"
         onClick={toggleOpenList}
-      >
-        <Tooltip title="Recording List" arrow>
-        <PlaylistPlayIcon /></Tooltip>
-      </IconButton>
+      > <PlaylistPlayIcon /></IconButton>
+      </Tooltip>
       
       <RecorderListModal 
         open={openList}
