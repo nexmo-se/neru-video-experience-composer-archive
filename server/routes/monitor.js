@@ -25,9 +25,10 @@ function Router(services) {
     }
   });
 
-  router.all("/", async function (req, res, next) {
+  router.all("*", async function (req, res, next) {
     try {
       console.log(JSON.stringify(req.body));
+      
       return res.sendStatus(200);
     } catch (e) {
       next(e);

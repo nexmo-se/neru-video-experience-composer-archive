@@ -18,6 +18,11 @@ function Router(services) {
   router.use("/api/room/", handleAuth, roomRouter(services));
   router.use("/api/recorder/", handleAuth, recorderRouter(services)); // customize recording
 
+
+  router.use("/api/*", function (req, res, next) {
+    next(new createError(404, "Are you lost? " + req.originalUrl));
+  });
+
   return router;
 }
 

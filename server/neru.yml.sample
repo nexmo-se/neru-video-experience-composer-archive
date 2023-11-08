@@ -6,10 +6,11 @@ instance:
     region: aws.euw1
     application-id: {{VONAGE_APPLICATION_ID}}
     entrypoint:
-        - node
-        - index.js
+        - npm 
+        - start
 debug:
-    name: 1
+    name: 0
     entrypoint:
-        - nodemon
-        - index.js
+        - npm 
+        - run
+        - debug

@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "start": "NODE_ENV=development nodemon index.js",
-    "prod": "NODE_ENV=production node index.js",
-    "debug": "neru debug --filename debug.yml",
+    "start": "NODE_ENV=production node index.js",
+    "dev": "NODE_ENV=development nodemon index.js",
+    "debug": "NODE_ENV=production nodemon index.js",
     "lint:fix": "eslint ./* --fix"
   },
   "author": "",

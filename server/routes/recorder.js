@@ -1,5 +1,5 @@
 const express = require("express");
-const createHttpError = require("http-errors")
+const createHttpError = require("http-errors");
 const router = express.Router();
 
 function Router(services) {

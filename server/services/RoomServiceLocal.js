@@ -8,12 +8,6 @@ const TABLE_NAME_ROOMS = "rooms";
 class RoomServiceLocal {
   constructor(store) {
     this.db = store;
-
-    // // for testing
-    if (process.env.TESTING_ROOMS) {
-      let arr = JSON.parse(process.env.TESTING_ROOMS);
-      if (arr.length) this.initRooms(arr);
-    }
   }
 
   async listRooms () {
@@ -48,13 +42,6 @@ class RoomServiceLocal {
     this.db.set(id, { ...room, ...data });
     return await this.getRoomById(id);
   }
-
-  // async getRoomBySessionId(sessionId) {
-  //   for (const room of this.db.values()) {
-  //     if (room.sessionId == sessionId) return room; 
-  //   }
-  //   return null;
-  // }
 
   async getRoomByRecorderSessionId(sessionId) {
     for (const room of this.db.values()) {

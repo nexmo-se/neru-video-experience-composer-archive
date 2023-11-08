@@ -45,6 +45,7 @@ export function WaitingRoom() {
     localStorage.setItem("username", user.username);
     localStorage.setItem("localAudio", localAudio);
     localStorage.setItem("localVideo", localVideo);
+    
     navigate({
       pathname: `/meeting-room/${localRoomId}`
     });

@@ -11,7 +11,14 @@ class RoomServiceVcr {
   }
 
   async listRooms () {
-    return await this.state.hvals(TABLE_NAME_ROOMS);
+    try {
+      const items = await this.state.hvals(TABLE_NAME_ROOMS);
+      items.forEach((i, k) => items[k] = JSON.parse(i));
+      return items;
+    } catch (e) {
+      console.log(e.message);
+      return null;
+    }
   }
 
   async delRooms () {
@@ -62,24 +69,10 @@ class RoomServiceVcr {
     }
   }
 
-  // async getRoomBySessionId(sessionId) {
-  //   try {
-  //     const i = await this.state.hgetall(TABLE_NAME_ROOMS);
-  //     for (const [id, str] of Object.values(i)) {
-  //       let room = JSON.parse(str);
-  //       if (room && room.sessionId == sessionId) return room;
-  //     }
-  //     return null;
-  //   } catch (e) {
-  //     return null;
-  //   }
-  // }
-
   async getRoomByRecorderSessionId(sessionId) {
     try {
-      const i = await this.state.hgetall(TABLE_NAME_ROOMS);
-      for (const str of Object.values(i)) {
-        let room = JSON.parse(str);
+      const items = await this.listRooms();
+      for (const room of items) {
         if (room && room.recorderSessionId == sessionId) return room;
       }
       return null;
@@ -90,9 +83,8 @@ class RoomServiceVcr {
 
   async getRoomByRecorderRenderId(renderId) {
     try {
-      const i = await this.state.hgetall(TABLE_NAME_ROOMS);
-      for (const str of Object.values(i)) {
-        let room = JSON.parse(str);
+      const items = await this.listRooms();
+      for (const room of items) {
         if (room && room.recorderRenderId == renderId) return room;
       }
       return null;
@@ -100,6 +92,7 @@ class RoomServiceVcr {
       return null;
     }
   }
+
 }
 
 module.exports = RoomServiceVcr;

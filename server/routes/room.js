@@ -1,4 +1,5 @@
 const express = require("express");
+const createHttpError = require("http-errors");
 const router = express.Router();
 
 function Router(services) {
@@ -9,7 +10,7 @@ function Router(services) {
       let { roomId } = req.params;
       let { role, username } = req.body;
       let room = await roomService.getRoomById(roomId);
-      if (!room) throw new createHttpError(400);
+      if (!room) throw new createHttpError(404);
       let token = opentok.generateToken(room.sessionId, role, { username });
       return res.json({ ...room, token });
     } catch (e) {
@@ -30,6 +31,20 @@ function Router(services) {
   //     next(e);
   //   }
   // });
+  // router.all("/init", async function (req, res, next) {
+  //   try {
+  //     // // for testing
+  //     if (process.env.TESTING_ROOMS) {
+  //       let arr = JSON.parse(process.env.TESTING_ROOMS);
+  //       if (arr.length) roomService.initRooms(arr);
+  //     }
+  //     let data = await roomService.listRooms();
+  //     return res.json(data);
+  //   } catch (e) {
+  //     console.log(e.message);
+  //     next(e);
+  //   }
+  // });
 
   router.all("/list", async function (req, res, next) {
     try {
@@ -45,7 +60,7 @@ function Router(services) {
     try {
       let { roomId } = req.params;
       let room = await roomService.getRoomById(roomId);
-      if (!room) throw new createHttpError(400);
+      if (!room) throw new createHttpError(404);
 
       await opentok.sendSignal(room.sessionId, req.body.type || "test", req.body.data || {});
 
@@ -59,7 +74,7 @@ function Router(services) {
     try {
       let { roomId } = req.params;
       let room = await roomService.getRoomById(roomId);
-      if (!room) throw new createHttpError(400);
+      if (!room) throw new createHttpError(404);
       
       let archive = await opentok.startArchive(room.sessionId);
 
@@ -82,7 +97,7 @@ function Router(services) {
     try {
       let { roomId } = req.params;
       let room = await roomService.getRoomById(roomId);
-      if (!room) throw new createHttpError(400);
+      if (!room) throw new createHttpError(404);
 
       try {
         if (room.archiveId) {
@@ -112,7 +127,7 @@ function Router(services) {
     try {
       let { roomId } = req.params;
       let room = await roomService.getRoomById(roomId);
-      if (!room) throw new createHttpError(400);
+      if (!room) throw new createHttpError(404);
       if (room.archiveId) {
         let archive = await opentok.getArchive(room.archiveId);
         return res.json({...room, archive});

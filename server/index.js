@@ -1,5 +1,5 @@
 const dotenv = require("dotenv");
-dotenv.config({path: process.env.NODE_ENV? `.env.${process.env.NODE_ENV}`: ""});
+dotenv.config({path: process.env.NODE_ENV? `.env.${process.env.NODE_ENV}`: "./.env"});
 
 const express = require("express");
 const cors = require("cors");
@@ -44,7 +44,7 @@ app.use(function (err, req, res, next) {
   res.status(code).json({ error: { detail, code } });
 });
 
-const PORT = 3002;
+const PORT = process.env.NERU_APP_PORT || 3000;
 app.listen(PORT, function () {
-  console.log(`App listening on ${PORT} ${process.env.NERU_APP_PORT}`);
+  console.log(`App listening on ${PORT}`);
 });
