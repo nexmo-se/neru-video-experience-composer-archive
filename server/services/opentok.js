@@ -41,7 +41,8 @@ const generateJwt = function (expire = 300) {
 };
 
 const generateToken = function (sessionId, role = "subscriber", data = {}) {
-  const token = opentok.generateToken(sessionId, { role,
+  const token = opentok.generateToken(sessionId, { 
+      role,
       data: JSON.stringify(data),
     }
   );
@@ -111,7 +112,7 @@ const getRender = async function(renderId) {
 };
 
 const startRender = async function(sessionId, url, options = {}) {
-  var token = opentok.generateToken(sessionId, "moderator", {
+  var token = generateToken(sessionId, "moderator", {
     type: "EC",
     username: "EC"
   });
@@ -125,7 +126,7 @@ const startRender = async function(sessionId, url, options = {}) {
         maxDuration: options.maxDuration || 1800,
         resolution: options.resolution || "1280x720",
         properties: {
-          name: options.name || `ExperienceComposer Sample App ${Date.now()}`
+          name: options.name || `Experience Composer Sample App ${Date.now()}`
         },
         statusCallbackUrl: options.callbackUrl || `${APP_URL}/monitor/ec/recorder`,
       }

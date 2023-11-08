@@ -5,7 +5,7 @@ const router = express.Router();
 function Router(services) {
   const { opentok, roomService } = services;
 
-  router.all("/:roomId/token", async function (req, res, next) {
+  router.post("/:roomId/token", async function (req, res, next) {
     try {
       let { roomId } = req.params;
       let { role, username } = req.body;
@@ -32,7 +32,7 @@ function Router(services) {
   //   }
   // });
   
-  router.all("/init", async function (req, res, next) {
+  router.post("/init", async function (req, res, next) {
     try {
       // // for testing
       if (process.env.TESTING_ROOMS) {
@@ -47,7 +47,7 @@ function Router(services) {
     }
   });
 
-  router.all("/list", async function (req, res, next) {
+  router.get("/list", async function (req, res, next) {
     try {
       let data = await roomService.listRooms();
       return res.json(data);
@@ -94,7 +94,7 @@ function Router(services) {
     }
   });
   
-  router.all("/:roomId/archive/stop", async function (req, res, next) {
+  router.post("/:roomId/archive/stop", async function (req, res, next) {
     try {
       let { roomId } = req.params;
       let room = await roomService.getRoomById(roomId);
@@ -124,7 +124,7 @@ function Router(services) {
     }
   });
 
-  router.all("/:roomId/info", async function (req, res, next) {
+  router.get("/:roomId/info", async function (req, res, next) {
     try {
       let { roomId } = req.params;
       let room = await roomService.getRoomById(roomId);

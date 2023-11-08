@@ -44,7 +44,7 @@ export function ViewingRoom() {
   }, [credentials]);
 
   useEffect(() => {
-    console.log(user);
+    // console.log(user);
     addMessages({from: "SYS", text: "- (Ready to receive chat messages)"});
   }, []);
 

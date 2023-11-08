@@ -20,7 +20,7 @@ function Router(services) {
 
 
   router.use("/api/*", function (req, res, next) {
-    next(new createError(404, "Are you lost? " + req.originalUrl));
+    return res.sendStatus(200);
   });
 
   return router;

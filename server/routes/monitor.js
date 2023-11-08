@@ -89,4 +89,5 @@ const onRecorderRenderStarted = async (roomService, opentok, room) => {
     }
   }
 }
+
 module.exports = Router;

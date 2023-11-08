@@ -17,9 +17,10 @@ const roomService = new RoomService(store);
 // const RoomServiceLocal = require("./RoomServiceLocal");
 // const roomService = new RoomServiceLocal(new Map());
 
+
+
 module.exports = {
   opentok,
   roomService,
-  APP_URL: neru.getAppUrl(), // run in VCR
-  // APP_URL: process.env.APP_URL, // run in local
+  APP_URL: process.env.APP_URL,
 };

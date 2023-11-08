@@ -16,6 +16,8 @@ app.use(logger("tiny", { skip: (req) => {
   return (p && p.length)
     ? ["_", "static", "favicon.ico", "manifest.json", "images"].includes(`${p[1]}`) 
       || "/room/token" === `/${p[2]}/${p[4]}`
+      || "/room/info" === `/${p[2]}/${p[4]}`
+      || "/history" === `/${p[3]}`
     : false;
 }}));
 app.use(cors());

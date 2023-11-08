@@ -8,6 +8,11 @@ const TABLE_NAME_ROOMS = "rooms";
 class RoomServiceLocal {
   constructor(store) {
     this.db = store;
+    
+    if (process.env.TESTING_ROOMS) {
+      let arr = JSON.parse(process.env.TESTING_ROOMS);
+      if (arr.length) this.initRooms(arr);
+    }
   }
 
   async listRooms () {

@@ -6,7 +6,7 @@ const router = express.Router();
 function Router(services) {
   const { opentok, APP_URL } = services;
   
-  router.all("/history(/:sessionId)?", async function (req, res, next) {
+  router.get("/history(/:sessionId)?", async function (req, res, next) {
     try {
       let sessionId = req.params.sessionId || null;
       let items = await opentok.listRenders({ sessionId });
@@ -16,7 +16,7 @@ function Router(services) {
     }
   });
   
-  router.all("/get/:renderId", async function (req, res, next) {
+  router.get("/get/:renderId", async function (req, res, next) {
     try {
       let { renderId } = req.params;
       if (!renderId) throw new createHttpError(400, "empty params or body");
@@ -38,7 +38,7 @@ function Router(services) {
     }
   });
   
-  router.all("/stop/:renderId", async function (req, res, next) {
+  router.post("/stop/:renderId", async function (req, res, next) {
     try {
       let { renderId } = req.params;
       if (!renderId) throw new createHttpError(400, "empty params or body");
