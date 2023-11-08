@@ -31,20 +31,21 @@ function Router(services) {
   //     next(e);
   //   }
   // });
-  // router.all("/init", async function (req, res, next) {
-  //   try {
-  //     // // for testing
-  //     if (process.env.TESTING_ROOMS) {
-  //       let arr = JSON.parse(process.env.TESTING_ROOMS);
-  //       if (arr.length) roomService.initRooms(arr);
-  //     }
-  //     let data = await roomService.listRooms();
-  //     return res.json(data);
-  //   } catch (e) {
-  //     console.log(e.message);
-  //     next(e);
-  //   }
-  // });
+  
+  router.all("/init", async function (req, res, next) {
+    try {
+      // // for testing
+      if (process.env.TESTING_ROOMS) {
+        let arr = JSON.parse(process.env.TESTING_ROOMS);
+        if (arr.length) roomService.initRooms(arr);
+      }
+      let data = await roomService.listRooms();
+      return res.json(data);
+    } catch (e) {
+      console.log(e.message);
+      next(e);
+    }
+  });
 
   router.all("/list", async function (req, res, next) {
     try {

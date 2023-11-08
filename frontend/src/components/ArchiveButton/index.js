@@ -14,6 +14,7 @@ export const ArchiveButton = memo(() => {
 
   const toggleArchive = async (e) => {
     if (!window.confirm(`Are you sure you want to ${!isArchiving? "start" : "stop"} recording?`)) {
+      setIsButtonDisabled(false);
       return;
     }
 

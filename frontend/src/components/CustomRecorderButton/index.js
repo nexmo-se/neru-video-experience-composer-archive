@@ -16,6 +16,7 @@ export function CustomRecorderButton() {
     setIsButtonDisabled(true);
     try {
       if (!window.confirm(`Are you sure you want to ${!isRecorderRecording? "start": "stop"} recording with Experience Composer and Archive API`)) {
+        setIsButtonDisabled(false);
         return;
       }
 

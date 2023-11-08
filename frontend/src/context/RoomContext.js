@@ -74,6 +74,10 @@ export function RoomProvider({children}) {
         setRecorderSessionId(data.recorderSessionId);
       }
 
+      if (data?.recorderRenderId || data?.recorderArchiveId ) {
+        setIsRecorderRecording(true);
+      }
+
     }).catch(console.log);
 
   }, [roomId]);
