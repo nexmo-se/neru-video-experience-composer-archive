@@ -2,12 +2,16 @@
 // CONFIG
 
 /** */
-const jwt = require('jsonwebtoken');
-const axios = require('axios');
-const OpenTok = require('opentok');
+const jwt = require("jsonwebtoken");
+const axios = require("axios");
+const OpenTok = require("opentok");
 
 const APP_URL = process.env.APP_URL;
-const opentok = new OpenTok(process.env.OT_API_KEY, process.env.OT_API_SECRET);
+const OT_API_KEY = process.env.OT_API_KEY;
+const OT_API_SECRET = process.env.OT_API_SECRET;
+const OT_API_RENDER = `https://api.opentok.com/v2/project/${OT_API_KEY}/render`;
+
+const opentok = new OpenTok(OT_API_KEY, OT_API_SECRET);
 
 /** */
 const createSession = async function () {
@@ -17,171 +21,218 @@ const createSession = async function () {
 
   return new Promise((resolve, reject) => {
     opentok.createSession(options, function (err, session) {
+      const { sessionId, archiveMode, mediaMode } = session;
+      console.log("opentok.createSession", { sessionId, archiveMode, mediaMode });
       if (err) return reject(err);
-      resolve(session);
+      resolve({ sessionId, archiveMode, mediaMode });
     });
   });
-}
+};
 
 const generateJwt = function (expire = 300) {
   var currentTime = Math.floor(new Date() / 1000);
   var token = jwt.sign({
     iss: process.env.OT_API_KEY,
-    ist: 'project',
+    ist: "project",
     iat: currentTime,
     exp: currentTime + expire
   }, process.env.OT_API_SECRET);
   return token;
 };
 
-const generateToken = function (sessionId, options) {
-  const token = opentok.generateToken(sessionId, options);
+const generateToken = function (sessionId, role = "subscriber", data = {}) {
+  const token = opentok.generateToken(sessionId, { role,
+      data: JSON.stringify(data),
+    }
+  );
   return token;
 };
 
-const sendSignal = async function (sessionId, type) {
-  try {
-    const data = { type, data: '' };
-    opentok.signal(sessionId, null, data, function (err) {
-      if (err) {
-        return Promise.resolve(false);
-      } else {
-        return Promise.resolve(true);
-      }
-    });
-  } catch (err) {
-    throw `send Signal - ${ err.message || 'failed'}`;
-  }
-}
-
-const listArchives =  async function (params) {
+const sendSignal = async function (sessionId, type = "chat", data = {}) {
   return new Promise((resolve, reject) => {
-    opentok.listArchives(params, function (err, archives, count) {
-      if (err) return reject(err);
-      resolve({ archives, count });
+    opentok.signal(sessionId, null, {
+      type, 
+      data: JSON.stringify(data)
+    }, function (err) {
+      if (err) {
+        console.log("signal", err.message);
+        return reject(err);
+      }
+      return resolve();
     });
   });
-}
-
-const listRenders = async function(params) {
-  try {
-    const url = `https://api.opentok.com/v2/project/${process.env.OT_API_KEY}/render`;
-    const jwt = generateJwt();
-    const headers = {
-      'Content-Type': 'application/json',
-      'X-OPENTOK-AUTH': jwt
-    };
-    const { data } = await axios.get(url, { headers, params });
-    return data;
-  } catch (error) {
-    console.log(error.message);
-    throw error.message;
-  }
-}
-
-const getRender = async function(renderId) {
-  try {
-    const url = `https://api.opentok.com/v2/project/${process.env.OT_API_KEY}/render/${renderId}`;
-    const jwt = generateJwt();
-    const headers = {
-      'Content-Type': 'application/json',
-      'X-OPENTOK-AUTH': jwt
-    };
-    const { data } = await axios.get(url, { headers });
-    return data;
-  } catch (error) {
-    console.log(error.message);
-    throw error.message;
-  }
-}
-
-const startRender = async function(sessionId, renderOptions) {
-  try {
-    var token = opentok.generateToken(sessionId, {
-      role: 'moderator', 
-      data: JSON.stringify({ type: 'EC' }),
-    });
-    const options = {
-      sessionId,
-      token,
-      properties: { name: `EC Sample APP @ ${(new Date()).toISOString()}` },
-      maxDuration: 1800,
-      resolution: '1280x720',
-      statusCallbackUrl: `${APP_URL}/monitor/ec`,
-      ...renderOptions,
-    };
-    
-    const url = `https://api.opentok.com/v2/project/${process.env.OT_API_KEY}/render`;
-    const jwt = generateJwt();
-    const headers = {
-      'Content-Type': 'application/json',
-      'X-OPENTOK-AUTH': jwt
-    };
-    const { data } = await axios.post(url, options, { headers });
-    return data;
-  } catch (error) {
-    console.log(error.message);
-    throw error.message;
-  }
-}
-
-const stopRender = async function(renderId) {
-  try {
-    console.log('stopRender!!');
-    const url = `https://api.opentok.com/v2/project/${process.env.OT_API_KEY}/render/${renderId}`;
-    const jwt = generateJwt();
-    const headers = {
-      'Content-Type': 'application/json',
-      'X-OPENTOK-AUTH': jwt
-    };
-    await axios.delete(url, { headers });
-    return true;
-  } catch (error) {
-    console.log(error.message);
-    throw error.message;
-  }
 };
 
-const startRecorder = async function(sessionId, archiveOptions) {
-  const options = {
-    name: `Archive Sample App @ ${(new Date()).toISOString()}`,
-    hasAudio: true,
-    hasVideo: true,
-    outputMode: 'composed',
-    ...archiveOptions
-  };
+// options = { count, offset - (optional), sessionId - (optional)}
+const listRenders = async function(options) {
+  try {
+    const headers = {
+      "Content-Type": "application/json",
+      "X-OPENTOK-AUTH ": generateJwt()
+    };
+
+    let { offset, count, sessionId } = options;
+    count = (count > 10 || count < 1)? 10 : count;
+    const params = new URLSearchParams();
+    if (offset) params.append('offset', offset)
+    if (count) params.append('count', count);
+
+    const { data } = await axios.get(OT_API_RENDER, { headers, params });
+    const { items } = data;
+    if (sessionId && items.length) {
+      return items.filter((item) => item.sessionId == sessionId)
+    }
+    return items;
+  } catch (e) {
+    console.log(e.message);
+    throw new Error("Failed to list Renders")
+  }
+  // return new Promise((resolve, reject) => {
+  //   opentok.listRenders(options, function (err, { items }) {
+  //     if (err) {
+  //       console.log("listRenders", err.message);
+  //       return reject(err);
+  //     }
+  //     resolve(items);
+  //   });
+  // });
+};
+
+const getRender = async function(renderId) {
   return new Promise((resolve, reject) => {
-    opentok.startArchive(sessionId, options, function (err, archive) {
-      if (err) return reject(err);
+    opentok.getRender(renderId, function (err, render) {
+      if (err) {
+        console.log("getRender", err.message);
+        return reject(err);
+      }
+      resolve(render);
+    });
+  });
+};
+
+const startRender = async function(sessionId, url, options = {}) {
+  var token = opentok.generateToken(sessionId, "moderator", {
+    type: "EC",
+    username: "EC"
+  });
+
+  return new Promise((resolve, reject) => {
+    opentok.startRender({
+      sessionId,
+      token,
+      url,
+      ...{
+        maxDuration: options.maxDuration || 1800,
+        resolution: options.resolution || "1280x720",
+        properties: {
+          name: options.name || `ExperienceComposer Sample App ${Date.now()}`
+        },
+        statusCallbackUrl: options.callbackUrl || `${APP_URL}/monitor/ec/recorder`,
+      }
+    }, function (err, render) {
+      if (err) {
+        console.log("startRender", err.message);
+        return reject(err);
+      }
+      resolve(render);
+    });
+  });
+};
+
+const stopRender = async function(renderId) {
+  return new Promise((resolve, reject) => {
+    opentok.stopRender(renderId, function (err, render) {
+      if (err) {
+        console.log("stopRender", err.message);
+        return reject(err);
+      }
+      resolve(render);
+    });
+  });
+};
+
+const listArchives =  async function (options) {
+  return new Promise((resolve, reject) => {
+    opentok.listArchives(options, function (err, archives) {
+      if (err) {
+        console.log("listArchives", err.message);
+        return reject(err);
+      }
+      resolve(archives);
+    });
+  });
+};
+
+const getArchive = async function(archiveId) {
+  return new Promise((resolve, reject) => {
+    opentok.getArchive(archiveId, function (err, archive) {
+      if (err) {
+        console.log("getArchive", err.message);
+        return reject(err);
+      }
       resolve(archive);
     });
   });
-}
+};
 
-const stopRecorder = async function(archiveId) {
+const startArchive = async function(sessionId, options = {}) {
   return new Promise((resolve, reject) => {
-    opentok.stopArchive(archiveId, function (err, archive) {
-      if (err) return reject(err);
-      resolve(true);
+    opentok.startArchive(sessionId, {
+      name: `Archive Sample App ${Date.now()}`,
+      hasAudio: true,
+      hasVideo: true,
+      outputMode: "composed",
+      ...options
+    }, function (err, archive) {
+      if (err) {
+        console.log("startArchive", err.message);
+        return reject(err);
+      }
+      resolve(archive);
     });
   });
-}
+};
+
+const stopArchive = async function(archiveId) {
+  return new Promise((resolve, reject) => {
+    opentok.stopArchive(archiveId, function (err, archive) {
+      if (err) {
+        console.log("stopArchive", err.message);
+        return reject(err);
+      }
+      resolve(archive);
+    });
+  });
+};
+
+const deleteArchive = async function(archiveId) {
+  return new Promise((resolve, reject) => {
+    opentok.deleteArchive(archiveId, function (err) {
+      if (err) {
+        console.log("deleteArchive", err.message);
+        return reject(err);
+      }
+      resolve();
+    });
+  });
+};
 
 module.exports = {
-  ...opentok,
   generateToken,
   generateJwt,
   createSession,
   sendSignal,
-  listArchives,
   listRenders,
   getRender,
   startRender,
   stopRender,
-  startRecorder,
-  stopRecorder,
+  listArchives,
+  getArchive,
+  startArchive,
+  stopArchive,
+  deleteArchive,
 };
 
 // module.exports = () => ({
-//   createSession () {},
+//   x () {},
 // });

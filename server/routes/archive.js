@@ -1,95 +1,79 @@
-const express = require('express');
+const express = require("express");
+const createHttpError = require("http-errors")
 const router = express.Router();
 
 /** */
 function Router(services) {
-  const { opentok } = services;
+  const { opentok, roomService } = services;
 
-  router.get('/history(/:sessionId)?', async function (req, res, next) {
-    var { sessionId } = req.params;
-    var page = req.query.page || 1;
-    var pageSize = 20;
-    var data = [];
+  router.all("/history(/:sessionId)?", async function (req, res, next) {
     try {
-      var totalCount = 0;
-      var offset = 0;
-      do {
-        offset = (page - 1) * pageSize;
-        let { archives: items, count } = await opentok.listArchives({ offset, count: pageSize });
-        if (count < 1) break;
-        totalCount = count;
-        if (items && sessionId) items = items.filter(i => (i.sessionId === sessionId));
-        if (items && items.length) data = data.concat(items);
-        page ++;
-        // } while (totalCount >= offset + pageSize);
-      } while (false);
+      let sessionId = req.params.sessionId || null;
+      let items = await opentok.listArchives({ sessionId });
+      return res.json(items);
+    } catch(e) {
+      next(e);
+    }
+  });
+
+  router.all("/get/:archiveId", async function (req, res, next) {
+    try {
+      let { archiveId } = req.params;
+      if (!archiveId) throw new createHttpError(400, "empty params or body");
+      let archive = await opentok.getArchive(archiveId);
+      res.json(archive);
+    } catch(e) {
+      next(e);
+    }
+  });
+  
+  router.post("/start/:sessionId", async function (req, res, next) {
+    try {
+      let { sessionId } = req.params;
+      if (!sessionId) throw new createHttpError(400, "empty params or body");
       
-      return res.json(data);
+      let archive = await opentok.startArchive(sessionId);
+
+      if (sessionId) await opentok.sendSignal(sessionId, `archive`, {
+        status: archive.status, 
+        archiveId: archive.id
+      });
+
+      res.json(archive);
     } catch(e) {
       next(e);
     }
   });
   
-  router.get('/download/:archiveId', function (req, res, next) {
-    var { archiveId } = req.params;
-    if (!archiveId) return res.send(500, 'empty params archiveId');
+  router.all("/stop/:archiveId", async function (req, res, next) {
     try {
-      opentok.getArchive(archiveId, function (err, archive) {
-        if (err) {
-          let errMsg = `[${req.path}] getArchive ${err.message} ${archiveId}`;
-          return res.status(500).send(errMsg);
-        }
-        return res.redirect(archive.url);
-      });
+      let { archiveId } = req.params;
+      if (!archiveId) throw new createHttpError(400, "empty params or body");
+      let { sessionId } = req.body;
+
+      try {
+        await opentok.stopArchive(archiveId);
+      } catch (error) {}
+
+      try {
+        if (sessionId) await opentok.sendSignal(sessionId, `archive`, {
+          status: "stopped"
+        });
+      } catch (error) {}
+
+      res.json({ msg: "stopped" });
     } catch(e) {
       next(e);
     }
   });
   
-  router.post('/start/:sessionId', function (req, res, next) {
-    let { sessionId } = req.params;
-    if (!sessionId) return res.status(500).send('empty params');
-    let archiveOptions = {};
+  router.all("/delete/:archiveId", async function (req, res, next) {
     try {
-      opentok.startArchive(sessionId, archiveOptions, function (err, archive) {
-        if (err) {
-          let errMsg = `[${req.path}] startArchive ${err.message} ${sessionId}`;
-          return res.status(500).send(errMsg);
-        }
-        return res.json(archive);
-      });
-    } catch(e) {
-      next(e);
-    }
-  });
-  
-  router.get('/stop/:archiveId', function (req, res, next) {
-    var { archiveId } = req.params;
-    if (!archiveId) return res.send(500, 'empty params archiveId');
-    try {
-      opentok.stopArchive(archiveId, function (err, archive) {
-        if (err) {
-          let errMsg = `[${req.path}] stopArchive ${err.message} ${archiveId}`;
-          return res.status(500).send(errMsg);
-        }
-        return res.json(archive);
-      });
-    } catch(e) {
-      next(e);
-    }
-  });
-  
-  router.delete('/delete/:archiveId', function (req, res, next) {
-    var { archiveId } = req.params;
-    if (!archiveId) return res.send(500, 'empty params archiveId');
-    try {
-      opentok.deleteArchive(archiveId, function (err) {
-        if (err) {
-          let errMsg = `[${req.path}] deleteArchive ${err.message} ${archiveId}`;
-          return res.status(500).send(errMsg);
-        }
-        return res.json({});
-      });
+      let { archiveId } = req.params;
+      if (!archiveId) throw new createHttpError(400, "empty params or body");
+      await opentok.deleteArchive(archiveId);
+      
+      res.json({ msg: "deleted" });
     } catch(e) {
       next(e);
     }

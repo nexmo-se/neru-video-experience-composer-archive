@@ -11,9 +11,21 @@
 
 
 ## Install and Run
-- run it in local, follow steps in `./front/README.md` and `./server/README.md` 
-- debug and deploy in Vonage Cloud Platform/NeRu follow steps in `./front/README.md` and `./neru/README.md` 
-
+- run it in local, follow steps in `./frontend/README.md` and `./server/README.md` 
 
 <!-- ![A sample app with Vonage API](./sample-app-screenshot.png?raw=true "sample app with Vonage API") -->
 
+
+host can
+    - publish autio +/ video streams, +/ share screen
+    - subscribe to all stream published
+    - chat
+    - start recording via ec
+
+guests can
+    - publish autio +/ video streams, +/ share screen
+    - subscribe to all stream published
+    - chat
+
+viewers(ec) can
+    - subscribe to all stream published

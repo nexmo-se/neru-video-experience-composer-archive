@@ -1,99 +1,123 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
 
 function Router(services) {
-  const { opentok, state, appUrl } = services;
+  const { opentok, roomService } = services;
 
-  /** */
-  router.get('/:roomId', async function (req, res, next) {
+  router.all("/:roomId/token", async function (req, res, next) {
     try {
       let { roomId } = req.params;
-      let room = await state.getRoomById(roomId);
-      if (!room) throw 'Not found room';
-      res.json(room);
+      let { role, username } = req.body;
+      let room = await roomService.getRoomById(roomId);
+      if (!room) throw new createHttpError(400);
+      let token = opentok.generateToken(room.sessionId, role, { username });
+      return res.json({ ...room, token });
     } catch (e) {
       next(e);
     }
   });
 
-  router.get('/:roomId/token', async function (req, res, next) {
+  // router.post("/create", async function (req, res, next) {
+  //   try {
+  //     let { roomId } = req.body;
+  //     let room = await roomService.getRoomById(roomId);
+  //     if (!room) {
+  //       const session = await opentok.createSession();
+  //       room = await roomService.addRoom(roomId, {...session, apiKey: process.env.OT_API_KEY});
+  //     }
+  //     return res.json(room);
+  //   } catch (e) {
+  //     next(e);
+  //   }
+  // });
+
+  router.all("/list", async function (req, res, next) {
+    try {
+      let data = await roomService.listRooms();
+      return res.json(data);
+    } catch (e) {
+      console.log(e.message);
+      next(e);
+    }
+  });
+
+  router.post("/:roomId/signal", async function (req, res, next) {
     try {
       let { roomId } = req.params;
-      let room = await state.getRoomById(roomId);
-      // if (!room) throw 'Not found room';
-      if (!room) {
-        const session = await opentok.createSession();
-        console.log(`[router] - ${req.path} opentok.createSession`, session.sessionId);
-        room = await state.addRoom(roomId, { sessionId: session.sessionId });
-      }
-      let token = opentok.generateToken(room.sessionId, { role: 'moderator' });
-      res.json({
-        ...room,
-        apiKey: process.env.OT_API_KEY,
-        sessionId: room.sessionId,
-        token: token
+      let room = await roomService.getRoomById(roomId);
+      if (!room) throw new createHttpError(400);
+
+      await opentok.sendSignal(room.sessionId, req.body.type || "test", req.body.data || {});
+
+      res.json({ msg: "signal sent" });
+    } catch (e) {
+      next(e);
+    }
+  });
+
+  router.post("/:roomId/archive/start", async function (req, res, next) {
+    try {
+      let { roomId } = req.params;
+      let room = await roomService.getRoomById(roomId);
+      if (!room) throw new createHttpError(400);
+      
+      let archive = await opentok.startArchive(room.sessionId);
+
+      await roomService.updateRoom(room.id, {
+        archiveId: archive.id
       });
-    } catch (e) {
-      next(e);
-    }
-  });
 
-  // create another session[recorderSessionId] for archiving
-  router.all('/:roomId/recorder/start', async function (req, res, next) {
-    try {
-      let { roomId } = req.params;
-      let room = await state.getRoomById(roomId);
-      if (!room) throw 'Not found room';
+      await opentok.sendSignal(room.sessionId, `archive`, {
+        status: archive.status, 
+        archiveId: archive.id
+      });
 
-      if (!room.recorderSessionId) {
-        const session = await opentok.createSession();
-        console.log(`[router] - ${req.path} opentok.createSession for RECORD`, session.sessionId);
-        room = await state.updateRoomById(roomId, { recorderSessionId: session.sessionId });
-      }
-      let sessionId = room.recorderSessionId;
-      let resolution = req.body.resolution ?? '1280x720';
-      let maxDuration = req.body.maxDuration ?? '1800'; // TODO: set a timer to stop recording
-      // start EC render
-      let url = `${appUrl}/video-room?room=${roomId}&ec=1&_v=${Date.now()}`;
-      let renderOptions = {
-        url,
-        maxDuration: maxDuration,
-        resolution: resolution,
-        statusCallbackUrl: `${appUrl}/monitor/ec/recorder`
-      };
-      if (req.body.name) renderOptions.properties = { name: req.body.name };
-      let render = await opentok.startRender(sessionId, renderOptions);
-      room = await state.updateRoomById(roomId, { render });
-      // start Recorder / Achive API
-      let archiveOptions = {
-        resolution: resolution,
-      };
-      let archive = await opentok.startRecorder(sessionId, archiveOptions);
-      // 
-      room = await state.updateRoomById(roomId, { archive });
-      await opentok.sendSignal(room.sessionId, `recorder:started`);
-      return res.json(room);
-    } catch (e) {
+      res.json(archive);
+    } catch(e) {
       next(e);
     }
   });
   
-  router.all('/:roomId/recorder/stop', async function (req, res, next) {
+  router.all("/:roomId/archive/stop", async function (req, res, next) {
     try {
       let { roomId } = req.params;
-      let room = await state.getRoomById(roomId);
-      if (!room) throw 'Not found room';
-      if (room.render) {
-        await opentok.stopRender(room.render.id);
-        room = await state.updateRoomById(roomId, { render: null });
+      let room = await roomService.getRoomById(roomId);
+      if (!room) throw new createHttpError(400);
+
+      try {
+        if (room.archiveId) {
+          await opentok.stopArchive(room.archiveId);
+        }
+      } catch (error) {}
+      
+      try {
+        await roomService.updateRoom(room.id, {
+          archiveId: null
+        });
+      } catch (error) {}
+
+      try {
+        await opentok.sendSignal(room.sessionId, `archive`, {
+          status: "stopped"
+        });
+      } catch (error) {}
+
+      res.json({ msg: "stopped" });
+    } catch(e) {
+      next(e);
+    }
+  });
+
+  router.all("/:roomId/info", async function (req, res, next) {
+    try {
+      let { roomId } = req.params;
+      let room = await roomService.getRoomById(roomId);
+      if (!room) throw new createHttpError(400);
+      if (room.archiveId) {
+        let archive = await opentok.getArchive(room.archiveId);
+        return res.json({...room, archive});
       }
-      if (room.archive) {
-        await opentok.stopRecorder(room.archive.id);
-        room = await state.updateRoomById(roomId, { archive: null });
-      }
-      room = await state.updateRoomById(roomId, { isRecording: false });
-      await opentok.sendSignal(room.sessionId, `recorder:stopped`);
-      return res.json({room});
+      return res.json(room);
     } catch (e) {
       next(e);
     }

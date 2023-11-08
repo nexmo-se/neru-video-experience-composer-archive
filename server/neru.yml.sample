@@ -1,0 +1,15 @@
+project:
+    name: video-ec-archive
+instance:
+    name: dev
+    runtime: nodejs16
+    region: aws.euw1
+    application-id: {{VONAGE_APPLICATION_ID}}
+    entrypoint:
+        - node
+        - index.js
+debug:
+    name: 1
+    entrypoint:
+        - nodemon
+        - index.js

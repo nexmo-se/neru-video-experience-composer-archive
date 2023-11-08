@@ -1,4 +1,4 @@
-# neru-video-ec-archive-server-express
+# neru-video-ec-archive-neru
 
 
 ## Prerequisites
@@ -9,7 +9,9 @@
 
 ## Install
 
-- `npm install`
+- run `npm install`
+- cp `neru.yml.sample` to `neru.yml` and update it with {{VONAGE_APPLICATION_ID}}
+- run `neru app configure --app-id {{VONAGE_APPLICATION_ID}}`
 
 
 ## Environment variables
@@ -23,8 +25,16 @@
 
 In the project directory, you can run:
 
+### `npm run debug` to start a Debugger
+- Run `npm start` in the `../frontend` to start frontend app
 
-### `npm start`
+
+### `neru deploy` to deploy it to your neru account
+- Before runing `neru deploy`, copy the frontent build directory to `neru/public`: `cd ../front && run npm build && cp ./build ../neru/public`
+
+
+### `npm start` locally
 
 Open [http://localhost:3002](http://localhost:3002) to view it in your browser.
+
 

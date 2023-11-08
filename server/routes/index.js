@@ -1,25 +1,22 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
 
-const roomRouter = require('./room');
-const archiveRouter = require('./archive');
-
-const monitorRouter = require('./monitor');
-const ecRouter = require('./ec');
+const handleAuth = require("../handler/handleAuth");
+const monitorRouter = require("./monitor");
+const archiveRouter = require("./archive");
+const renderRouter = require("./render");
+const roomRouter = require("./room");
+const recorderRouter = require("./recorder");
 
 function Router(services) {
-  const { opentok, state } = services;
-  /** */
-  router.use('/monitor/', monitorRouter(services));
-  router.use('/api/archive/', archiveRouter(services));
-  router.use('/api/ec/', ecRouter(services));
-
-  router.use('/api/room', roomRouter(services));
 
   /** */
-  router.all('/', async function (req, res, next) {
-    res.json({});
-  });
+  router.use("/monitor/", monitorRouter(services));
+  /** */
+  router.use("/api/archive/", handleAuth, archiveRouter(services));
+  router.use("/api/render/", handleAuth, renderRouter(services)); 
+  router.use("/api/room/", handleAuth, roomRouter(services));
+  router.use("/api/recorder/", handleAuth, recorderRouter(services)); // customize recording
 
   return router;
 }

@@ -1,38 +1,26 @@
 const OT_API_KEY = process.env.OT_API_KEY;
 const OT_API_SECRET = process.env.OT_API_SECRET;
 if (!OT_API_KEY || !OT_API_SECRET) {
-  console.log('You must specify OT_API_KEY and OT_API_SECRET environment variables');
-  process.exit(1);
+  console.log("You must specify OT_API_KEY and OT_API_SECRET environment variables");
+  process.exit(0);
 }
 
-const PORT = process.env.PORT || 3002;
-
-/** */
 const opentok = require("./opentok");
-const state = require("./state")();
 
-const appUrl = process.env.APP_URL; // neru.getAppUrl();
+/** run in VCR */
+// const { neru } = require('neru-alpha');
+// const store = neru.getInstanceState();
+// const RoomService = require('./RoomServiceVcr');
+// const roomService = new RoomService(store);
 
-/** */
-const start = async (app) => {
-  try {
-    console.log('[start] -');
+/** -- OR -- run in local */
+const RoomServiceLocal = require("./RoomServiceLocal");
+const roomService = new RoomServiceLocal(new Map());
 
-    app.set('appUrl', appUrl);
-
-    app.listen(PORT, function () {
-      console.log(`[start] - listening on ${PORT} `);
-    });
-
-  } catch (e) {
-    console.log('[start] - error', e);
-    process.exit(1);
-  }
-};
 
 module.exports = {
-  start,
   opentok,
-  state,
-  appUrl,
+  roomService,
+  // APP_URL: neru.getAppUrl(), // run in VCR
+  APP_URL: process.env.APP_URL, // run in local
 };
